@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Movie {
+  id              Int      @id @default(autoincrement())
+  tmdbId          Int      @unique @map("tmdb_id")
+  imdbId          String?  @map("imdb_id")
+  title           String
+  titlePt         String?  @map("title_pt")
+  overview        String?  @db.Text
+  overviewPt      String?  @map("overview_pt") @db.Text
+  releaseDate     DateTime? @map("release_date")
+  posterPath      String?  @map("poster_path")
+  backdropPath    String?  @map("backdrop_path")
+  mediaType       String   @default("movie") @map("media_type") // 'movie' ou 'tv'
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  ratings         Rating[]
+  streamingAvailability StreamingAvailability[]
+
+  @@map("movies")
+}
+
+model Rating {
+  id              Int      @id @default(autoincrement())
+  movieId         Int      @map("movie_id")
+  imdbRating      Float?   @map("imdb_rating")
+  rottenTomatoes  Int?     @map("rotten_tomatoes")
+  metacritic      Int?
+  googleScore     Int?     @map("google_score")
+  recordedAt      DateTime @default(now()) @map("recorded_at")
+
+  movie           Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@map("ratings")
+  @@index([movieId])
+}
+
+model StreamingAvailability {
+  id              Int      @id @default(autoincrement())
+  movieId         Int      @map("movie_id")
+  provider        String   // 'Netflix', 'HBO Max', 'Amazon Prime', etc
+  providerLogo    String?  @map("provider_logo")
+  available       Boolean  @default(true)
+  streamingType   String?  @map("streaming_type") // 'subscription', 'rent', 'buy', 'free'
+  link            String?  @db.Text
+  recordedAt      DateTime @default(now()) @map("recorded_at")
+
+  movie           Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@map("streaming_availability")
+  @@index([movieId])
+  @@index([provider])
+}
