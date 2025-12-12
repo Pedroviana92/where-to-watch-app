@@ -135,6 +135,14 @@ export async function GET(
       }
     }
 
+    // Verificar se dbMovie existe
+    if (!dbMovie) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to create or retrieve movie' },
+        { status: 500 }
+      );
+    }
+
     // 3. Formatar resposta
     const latestRating = dbMovie.ratings[0];
 
